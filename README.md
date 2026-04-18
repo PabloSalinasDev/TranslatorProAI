@@ -121,4 +121,10 @@ python main.py
 
 ---
 
+## Licencia
+
+Este proyecto está bajo la Licencia MIT. Para más detalles, consulta el archivo [LICENSE](LICENSE).
+
+---
+
 *Desarrollado por [Pablo Salinas](https://github.com/PabloSalinasDev)*
