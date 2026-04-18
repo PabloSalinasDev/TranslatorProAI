@@ -1,0 +1,21 @@
+# Entornos virtuales
+venv/
+.venv/
+env/
+
+# Nuitka y Compilación
+*.build/
+*.dist/
+dist_final/
+__pycache__/
+*.pyc
+
+# Logs y Datos locales
+*.log
+assets/cache/
+
+# VS Code y Sistema
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
