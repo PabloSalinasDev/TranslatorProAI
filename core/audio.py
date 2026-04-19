@@ -38,6 +38,11 @@ class MotorAudio:
         """
         Reproduce audio con control de estado y reinicio de mixer
         """
+        
+        if not pygame.mixer.get_init():
+            logging.warning("No hay dispositivo de audio disponible, omitiendo reproducción")
+            return
+        
         try:
             # 1. Reinicia el mixer para asegurar salida de audio actual
             self._inicializar_seguro()
