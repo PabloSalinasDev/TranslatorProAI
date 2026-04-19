@@ -48,6 +48,12 @@ ingeniería de software profesional:
 - Audio y Voz: gTTS, Pygame Audio y SpeechRecognition.
 - Procesamiento: Noisereduce para la limpieza de señal de audio.
 
+Nota: Al ser una herramienta de utilidad independiente y 
+no estar firmada digitalmente, es posible que 
+Windows SmartScreen muestre una advertencia. 
+Puede ejecutarla con total seguridad 
+seleccionando 'Más información' -> 'Ejecutar de todas formas'.
+
 ==========================================================
 Traductor Pro AI - Versión 1.0.0
 Desarrollado por PyBloSoft © 2026

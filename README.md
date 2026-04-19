@@ -5,6 +5,16 @@ Aplicación de escritorio con interfaz gráfica frameless y tema oscuro para tra
 escrito y voz en tiempo real. Integra reconocimiento de voz, síntesis TTS y traducción
 automática vía Google, con cache LRU para optimizar el uso de la API.
 
+<p align="center">
+  <a href="https://github.com/PabloSalinasDev/TranslatorProAI/releases/download/v1.0.0/TranslatorProAI-Ver.1.0.0.exe">
+    <img src="https://img.shields.io/badge/Descargar-Instalador_Windows-blue?style=for-the-badge&logo=windows" alt="Descargar Instalador">
+  </a>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://github.com/PabloSalinasDev/TranslatorProAI/issues">
+    <img src="https://img.shields.io/badge/Reportar-Error-red?style=for-the-badge&logo=github" alt="Reportar Error">
+  </a>
+</p>
+
 ---
 
 ## Capturas de Pantalla
@@ -124,6 +134,10 @@ python main.py
 ## Licencia
 
 Este proyecto está bajo la Licencia MIT. Para más detalles, consulta el archivo [LICENSE](LICENSE).
+
+---
+
+Nota: Al ser una herramienta de utilidad independiente y no estar firmada digitalmente, es posible que Windows SmartScreen muestre una advertencia. Puede ejecutarla con total seguridad seleccionando 'Más información' -> 'Ejecutar de todas formas'.
 
 ---
 
