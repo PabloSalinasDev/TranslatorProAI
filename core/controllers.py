@@ -1,6 +1,7 @@
 import threading
 import time
 import logging
+import re
 import flet as ft
 from deep_translator import GoogleTranslator
 from config.settings import IDIOMAS
@@ -95,7 +96,14 @@ class AppController:
 
             trad, lang = self.motor_traduccion.traducir(self.ui.texto_in.value, tgt_clean)
             
-            self.ui.texto_out_entrada.value = trad.capitalize()
+            # --- CORRECCIÓN AQUÍ ---
+            # 1. Aseguramos que la primera letra sea mayúscula sin tocar el resto
+            trad_corregida = trad[0].upper() + trad[1:] if trad else trad
+            
+            # 2. Se pone mayúscula después de cada . ! o ? (y espacios)
+            trad_corregida = re.sub(r'([\.!\?]\s*)([a-z])', lambda m: m.group(1) + m.group(2).upper(), trad_corregida)
+            
+            self.ui.texto_out_entrada.value = trad_corregida
             self.estado.ultimo_idioma = lang
             self.estado.ultimo_texto_trad = trad
             self.ui.texto_proceso.value = "Completado"

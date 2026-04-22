@@ -126,7 +126,7 @@ python main.py
 - Cache LRU implementado manualmente con `OrderedDict` (sin librerías externas).
 - Preprocesamiento de señal de audio: reducción de ruido espectral con `noisereduce` y filtro Butterworth pasa-banda con `scipy.signal`.
 - División inteligente de texto largo con `re` y `textwrap` para no exceder límites de la API TTS.
-- Manejo de SSL con `certifi` para compatibilidad en ejecutables generados con PyInstaller.
+- Manejo de SSL con `certifi` para compatibilidad en ejecutables.
 - Pantalla de carga con verificación de conectividad antes de habilitar la interfaz principal.
 
 ---

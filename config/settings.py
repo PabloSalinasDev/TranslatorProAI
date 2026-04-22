@@ -1,7 +1,7 @@
 APP_TITLE = "Translator Pro AI"
-APP_VERSION = "Ver. 1.0.0"
+APP_VERSION = "Ver. 1.0.1"
 
-myappid = 'pyblosoft.TranslatorProAI.1.0.0'
+myappid = 'pyblosoft.TranslatorProAI.1.0.1'
 
 IDIOMAS = {
     "Auto (Texto)": "auto",
