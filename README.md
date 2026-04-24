@@ -1,5 +1,5 @@
-# Translator Pro AI
-### Traductor de texto y voz con síntesis de audio · Python & Flet · v1.0.0
+# TranslatorPro AI
+### Traductor de texto y voz con síntesis de audio · Python & Flet · v1.1.0
 
 Aplicación de escritorio con interfaz gráfica frameless y tema oscuro para traducir texto
 escrito y voz en tiempo real. Integra reconocimiento de voz, síntesis TTS y traducción
@@ -30,7 +30,7 @@ automática vía Google, con cache LRU para optimizar el uso de la API.
 ## Características Principales
 
 - **Traducción de texto** — Detección automática del idioma de origen con caché LRU integrado que evita llamadas repetidas a la API.
-- **Traducción por voz** — Grabación desde micrófono (máx. 60 seg.) con preprocesamiento de audio: reducción de ruido espectral, filtro pasa-banda (60–7000 Hz) y normalización antes de enviar a Google Speech API.
+- **Traducción por voz** — Grabación desde micrófono o loopback del sistema (máx. 60 seg.) con detección automática del modo según el audio activo. Preprocesamiento de audio adaptativo: reducción de ruido y filtro pasa-banda (60–7000 Hz) en modo micrófono, normalización en modo loopback.
 - **Síntesis de voz (TTS)** — Reproduce la traducción con `gTTS` + `pygame`, con controles de pausar, reanudar y detener. Soporta textos largos mediante división inteligente por puntuación.
 - **Monitor de conectividad** — Hilo en segundo plano que verifica la conexión cada 5 segundos y actualiza el indicador WiFi en la barra de título.
 - **Interfaz frameless** — Ventana sin bordes (500×655), arrastrable, con modo oscuro y paleta naranja/gris.
@@ -47,7 +47,7 @@ automática vía Google, con cache LRU para optimizar el uso de la API.
 ├── core/
 │   ├── traduccion.py      # Motor de traducción (GoogleTranslator + cache LRU + divisor de texto)
 │   ├── audio.py           # Motor TTS: gTTS → BytesIO → pygame mixer (estados: playing/paused/stopped)
-│   └── voz.py             # Motor STT: sounddevice → preprocesamiento → Google Speech API
+│   └── voz.py             # Motor STT: soundcard/sounddevice → preprocesamiento → Google Speech API
 ├── ui/
 │   └── vistas.py          # Todos los componentes Flet (layout, botones, dropdowns, estilos)
 ├── utils.py               # CacheTraduccion (LRU con OrderedDict) + GestorConectividad
@@ -74,6 +74,7 @@ Español · Inglés · Francés · Portugués · Italiano · Alemán · Chino ·
 | `gTTS` | Síntesis de voz (Text-to-Speech) |
 | `pygame` | Reproducción y control del mixer de audio |
 | `sounddevice` | Captura de audio desde micrófono |
+| `soundcard` | Captura de audio del sistema por loopback |
 | `noisereduce` + `scipy` | Preprocesamiento y limpieza de audio |
 | `certifi` | Manejo de certificados SSL en ejecutables compilados |
 
@@ -112,8 +113,8 @@ python main.py
 4. Opcionalmente, presioná **Reproducir** para escuchar la traducción.
 
 **Modo Voz**
-1. Seleccioná el idioma de origen y de destino *(no usar "Auto" en modo voz)*.
-2. Presioná **Grabar** → hablá al micrófono (máx. 60 segundos, con contador regresivo).
+1. Seleccioná el idioma de origen y de destino.
+2. Presioná **Grabar** → la app detecta automáticamente si hay audio del sistema (video/YouTube) o voz del micrófono.
 3. Presioná **Stop rec** → el sistema transcribe y traduce automáticamente.
 4. El texto original y la traducción aparecen en pantalla; presioná **Reproducir** para escucharla.
 
@@ -124,7 +125,8 @@ python main.py
 - Arquitectura multihilo con `threading` para no bloquear la UI durante grabación, TTS, y monitoreo de red.
 - Máquina de estados para el reproductor de audio: `playing → paused → stopped`.
 - Cache LRU implementado manualmente con `OrderedDict` (sin librerías externas).
-- Preprocesamiento de señal de audio: reducción de ruido espectral con `noisereduce` y filtro Butterworth pasa-banda con `scipy.signal`.
+- Detección automática de modo de captura de audio mediante análisis de RMS del loopback del sistema.
+- Preprocesamiento adaptativo de señal de audio: reducción de ruido espectral con `noisereduce` y filtro Butterworth pasa-banda con `scipy.signal` en modo micrófono.
 - División inteligente de texto largo con `re` y `textwrap` para no exceder límites de la API TTS.
 - Manejo de SSL con `certifi` para compatibilidad en ejecutables.
 - Pantalla de carga con verificación de conectividad antes de habilitar la interfaz principal.

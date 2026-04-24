@@ -48,7 +48,7 @@ class AppController:
         """
         es_texto = index == 0
         self.motor_audio.detener()
-        
+        self.motor_voz.cancelar()
         self.ui.texto_in.value = ""
         self.ui.texto_out_entrada.value = ""
         self.ui.texto_out_salida.value = ""
@@ -96,11 +96,9 @@ class AppController:
 
             trad, lang = self.motor_traduccion.traducir(self.ui.texto_in.value, tgt_clean)
             
-            # --- CORRECCIÓN AQUÍ ---
-            # 1. Aseguramos que la primera letra sea mayúscula sin tocar el resto
             trad_corregida = trad[0].upper() + trad[1:] if trad else trad
             
-            # 2. Se pone mayúscula después de cada . ! o ? (y espacios)
+            # Se pone mayúscula después de cada . ! o ? (y espacios)
             trad_corregida = re.sub(r'([\.!\?]\s*)([a-z])', lambda m: m.group(1) + m.group(2).upper(), trad_corregida)
             
             self.ui.texto_out_entrada.value = trad_corregida
@@ -153,6 +151,8 @@ class AppController:
 
         def _audio_thread():
             try:
+                self.ui.texto_proceso.value = "Reproduciendo..."
+                self.page.update()
                 def cb(est):
                     if est == "stopped":
                         self.ui.texto_proceso.value = "Finalizado"
@@ -170,18 +170,24 @@ class AppController:
 
     def start_voice(self, _):
         """
-        Inicia el proceso de captura de audio a través del micrófono.
+        Inicia el proceso de captura de audio.
+        Detecta automáticamente el modo (loopback o micrófono) según
+        si hay audio del sistema sonando al momento de grabar.
         Realiza una validación de conectividad antes de proceder. Si es exitosa:
-        1. Activa el flujo de entrada en el MotorVoz.
-        2. Bloquea los controles de texto y reproducción para evitar conflictos.
-        3. Transforma el botón de 'Detener' en un controlador de grabación ('Stop rec').
+        1. Limpia los campos de texto anteriores.
+        2. Activa el flujo de entrada en el MotorVoz.
+        3. Bloquea los controles para evitar conflictos.
+        4. Transforma el botón de 'Detener' en un controlador de grabación ('Stop rec').
         """
         if not self.gestor_red.verificar_conexion():
             self.ui.texto_proceso.value = "Sin conexión"
             self.page.update()
             return
         try:
+            self.ui.texto_out_entrada.value = ""
+            self.ui.texto_out_salida.value = ""  
             self.motor_voz.iniciar_grabacion()
+            
             self.ui.btn_grabar.disabled = True
             self.ui.btn_detener.disabled = False
             self.ui.btn_detener.text = "Stop rec"
@@ -203,15 +209,18 @@ class AppController:
             threading.Thread(target=timer, daemon=True).start()
         except Exception as ex:
             self.ui.texto_proceso.value = f"Error micrófono"
+            logging.error(f"Error en start_voice: {ex}")
             self.page.update()
 
     def stop_voice(self, _):
         """
-        Finaliza la captura de audio y procesa la traducción de voz.
-        Corta la grabación del micrófono y lanza un hilo secundario para 
-        realizar la transcripción y traducción sin bloquear la interfaz.
+        Finaliza la captura de audio y procesa la traducción.
+        Corta la grabación (loopback o micrófono según modo detectado) y lanza
+        un hilo secundario para realizar la transcripción y traducción
+        sin bloquear la interfaz.
         """
         try:
+            logging.info("stop_voice llamado")
             audio_data = self.motor_voz.detener_grabacion()
             self.ui.btn_detener.disabled = True
             self.ui.pr.visible = True
@@ -251,7 +260,7 @@ class AppController:
         try:
             self.page.window.visible = False
             self.motor_audio.detener()
-            self.motor_voz.is_recording = False 
+            self.motor_voz.cancelar()
 
         except Exception as e:
             logging.error(f"Error durante el cierre: {e}")

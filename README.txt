@@ -1,8 +1,8 @@
 ==========================================================
-          TRADUCTOR PRO AI - Manual de Usuario
+          TranslatorPro AI - Manual de Usuario
 ==========================================================
 
-¡Gracias por instalar Traductor Pro AI! Esta aplicación es una 
+¡Gracias por instalar TranslatorPro AI! Esta aplicación es una 
 herramienta de alto rendimiento diseñada para traducciones 
 fluidas de texto y voz, enfocada en la estabilidad y la 
 experiencia del usuario.
@@ -11,7 +11,7 @@ experiencia del usuario.
 1. REQUISITOS DEL SISTEMA
 ----------------------------------------------------------
 - Conexión a Internet: Necesaria para el motor de traducción.
-- Micrófono: Requerido para el procesamiento de voz a texto.
+- Micrófono: Requerido para el modo voz con voz propia.
 - Audio: Altavoces o auriculares para la síntesis de voz.
 
 ----------------------------------------------------------
@@ -23,7 +23,10 @@ MODO TEXTO:
 - Control de reproducción de voz con funciones de Pausa/Reanudar.
 
 MODO VOZ:
-- Reconocimiento de voz con reducción activa de ruido de fondo.
+- Detección automática del origen de audio: micrófono o sistema
+  (videos, YouTube, reproductores de audio).
+- Reconocimiento de voz con reducción activa de ruido de fondo
+  en modo micrófono.
 - Temporizador en tiempo real (límite de 60s por sesión).
 - Pipeline automatizado de transcripción y traducción.
 
@@ -46,6 +49,7 @@ ingeniería de software profesional:
 - Interfaz Gráfica: Flet (Basado en Flutter).
 - Traducción: Motores de Traducción Neuronal (NMT).
 - Audio y Voz: gTTS, Pygame Audio y SpeechRecognition.
+- Captura de Audio: SoundDevice (micrófono) + SoundCard (loopback).
 - Procesamiento: Noisereduce para la limpieza de señal de audio.
 
 Nota: Al ser una herramienta de utilidad independiente y 
@@ -55,6 +59,6 @@ Puede ejecutarla con total seguridad
 seleccionando 'Más información' -> 'Ejecutar de todas formas'.
 
 ==========================================================
-Traductor Pro AI - Versión 1.0.0
+TranslatorPro AI - Versión 1.1.0
 Desarrollado por PyBloSoft © 2026
 ==========================================================
