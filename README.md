@@ -19,10 +19,14 @@ automática vía Google, con cache LRU para optimizar el uso de la API.
 
 ## Capturas de Pantalla
 
+<h3 align="center">Modo Texto</h3>
 <p align="center">
-  <img src="assets/screenshot_texto.png" width="300" alt="Modo texto"/>
-  &nbsp;&nbsp;
-  <img src="assets/screenshot_voz.png" width="300" alt="Modo voz"/>
+  <img src="assets/screenshot_texto.png" width="500" alt="Modo texto"/>
+</p>
+
+<h3 align="center">Modo Voz</h3>
+<p align="center">
+  <img src="assets/screenshot_voz.png" width="500" alt="Modo voz"/>
 </p>
 
 ---
@@ -144,3 +148,4 @@ Nota: Al ser una herramienta de utilidad independiente y no estar firmada digita
 ---
 
 *Desarrollado por [Pablo Salinas](https://github.com/PabloSalinasDev)*
+PyBloSoft © 2026
