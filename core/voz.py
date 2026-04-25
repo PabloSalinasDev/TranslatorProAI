@@ -12,9 +12,11 @@ import logging
 class MotorVoz:
     """
     Motor de reconocimiento de voz (Speech-to-Text).
-    Detecta automáticamente el modo de captura:
-    - 'loopback': si hay audio del sistema sonando (videos, YouTube)
-    - 'microfono': si no hay audio del sistema (voz real del usuario)
+    Arranca micrófono y loopback en paralelo desde el inicio.
+    Al detener, evalúa automáticamente cuál tiene audio real:
+    - Si hay audio del sistema (videos, YouTube) → usa loopback
+    - Si hay voz del usuario → usa micrófono
+    - Si no hay audio en ninguno → lanza excepción
     """
 
     def __init__(self, fs=16000):
@@ -29,113 +31,109 @@ class MotorVoz:
         self.queue = queue.Queue()
         self.stream = None
         self.recording = []
+        self._buffer_mic = []
 
     def callback_audio(self, indata, frames, time, status):
         """Callback para captura de micrófono en tiempo real."""
         if status:
-            logging.warning(f"Audio status: {status}")
-        self.queue.put(indata.copy())
-
-    def _detectar_modo(self):
-        """
-        Escucha 300ms del loopback y mide el volumen RMS.
-        Si hay señal, usa loopback. Si no, usa micrófono.
-        """
-        try:
-            speaker = sc.default_speaker()
-            mic = sc.get_microphone(speaker.id, include_loopback=True)
-            with mic.recorder(samplerate=self.fs, channels=1) as rec:
-                muestra = rec.record(numframes=int(self.fs * 0.3))  # 300ms
-
-            rms = np.sqrt(np.mean(muestra**2))
-            logging.info(f"Detección automática — RMS loopback: {rms:.6f}")
-
-            if rms > 0.005:  # Umbral: hay audio en el sistema
-                logging.info("Modo detectado: LOOPBACK")
-                return "loopback"
-            else:
-                logging.info("Modo detectado: MICROFONO")
-                return "microfono"
-        except Exception as e:
-            logging.warning(f"Error en detección automática, usando micrófono: {e}")
-            return "microfono"
+            self.queue.put(indata.copy())
 
     def iniciar_grabacion(self):
         """
-        Detecta automáticamente el modo e inicia la captura de audio.
+        Arranca micrófono y loopback en paralelo desde el inicio.
+        Evalúa cuál tiene audio real y descarta el otro.
         """
         self._cancelado = False
         self._buffer = []
+        self._buffer_mic = []
         self.recording = []
         self.is_recording = True
-        self._modo = self._detectar_modo()
+        self._modo = None
 
-        if self._modo == "loopback":
-            try:
-                speaker = sc.default_speaker()
-                self._loopback_mic = sc.get_microphone(speaker.id, include_loopback=True)
-                logging.info(f"Grabación loopback iniciada — dispositivo: {speaker.name}")
-            except Exception as e:
-                self.is_recording = False
-                logging.error(f"Error iniciando loopback: {e}")
-                raise Exception(f"No se pudo iniciar captura de audio del sistema: {e}")
+        # Limpiar queue
+        while not self.queue.empty():
+            self.queue.get()
 
-            def _grabar():
-                try:
-                    with self._loopback_mic.recorder(samplerate=self.fs, channels=1) as rec:
-                        while self.is_recording:
-                            chunk = rec.record(numframes=self.fs // 10)  # chunks 100ms
-                            self._buffer.append(chunk)
-                except Exception as e:
-                    logging.error(f"Error en hilo loopback: {e}")
-
-            self._hilo = threading.Thread(target=_grabar, daemon=True)
-            self._hilo.start()
-
-        else:  # microfono
-            while not self.queue.empty():
-                self.queue.get()
-
-            self.stream = sd.InputStream(
-                samplerate=self.fs, channels=1, callback=self.callback_audio
-            )
-            self.stream.start()
-            logging.info("Grabación micrófono iniciada")
-
-    def detener_grabacion(self):
-        """Detiene la captura y retorna el audio grabado en RAM."""
-        if not self.is_recording:
-            raise Exception("No hay grabación activa")
-
-        logging.info(f"Deteniendo grabación — modo: {self._modo}")
-        self.is_recording = False
-
-        if self._modo == "loopback":
-            self._hilo.join(timeout=2)
-            if not self._buffer:
-                raise Exception("El audio está vacío")
-            return [np.concatenate(self._buffer, axis=0)]
-
-        else:  # microfono
+        # --- STREAM MICRÓFONO ---
+        if self.stream is not None:
             try:
                 self.stream.stop()
                 self.stream.close()
+            except:
+                pass
+            self.stream = None
+
+        self.stream = sd.InputStream(
+            samplerate=self.fs, channels=1, callback=self.callback_audio
+        )
+        self.stream.start()
+
+        # --- STREAM LOOPBACK ---
+        def _grabar_loopback():
+            try:
+                speaker = sc.default_speaker()
+                loopback_mic = sc.get_microphone(speaker.id, include_loopback=True)
+                with loopback_mic.recorder(samplerate=self.fs, channels=1) as rec:
+                    while self.is_recording:
+                        chunk = rec.record(numframes=self.fs // 10)  # 100ms
+                        self._buffer.append(chunk)
             except Exception as e:
-                logging.warning(f"Error cerrando stream micrófono: {e}")
+                logging.error(f"Error en hilo loopback: {e}")
 
-            while not self.queue.empty():
-                self.recording.append(self.queue.get())
+        self._hilo = threading.Thread(target=_grabar_loopback, daemon=True)
+        self._hilo.start()
 
-            if not self.recording:
-                raise Exception("El audio está vacío")
+    def detener_grabacion(self):
+        """Detiene ambos streams y retorna el buffer con audio real."""
+        if not self.is_recording:
+            raise Exception("No se detectó audio")
 
-            return self.recording
+        self.is_recording = False
 
+        # Detener micrófono
+        try:
+            self.stream.stop()
+            self.stream.close()
+        except Exception as e:
+            logging.warning(f"Error cerrando micrófono: {e}")
+        self.stream = None
+
+        # Esperar que termine el hilo loopback
+        if self._hilo:
+            self._hilo.join(timeout=2)
+
+        # Recoger audio del micrófono
+        while not self.queue.empty():
+            self._buffer_mic.append(self.queue.get())
+
+        # Evaluar cuál tiene audio real
+        rms_loopback = 0.0
+        rms_mic = 0.0
+
+        if self._buffer:
+            audio_lb = np.concatenate(self._buffer, axis=0).flatten()
+            rms_loopback = float(np.sqrt(np.mean(audio_lb**2)))
+
+        if self._buffer_mic:
+            audio_mc = np.concatenate(self._buffer_mic, axis=0).flatten()
+            rms_mic = float(np.sqrt(np.mean(audio_mc**2)))
+
+        # Usar el que tiene más señal
+        if rms_loopback >= rms_mic and rms_loopback > 0.014:
+            self._modo = "loopback"
+            return [np.concatenate(self._buffer, axis=0)]
+        elif rms_mic > 0.014:
+            self._modo = "microfono"
+            return self._buffer_mic
+        else:
+            raise Exception("No se detectó audio")
+    
     def cancelar(self):
         """Cancela la grabación sin procesar el audio."""
         logging.info("Grabación cancelada")
         self._cancelado = True
         self.is_recording = False
+        self._buffer_mic = []
 
         if self._modo == "loopback" and self._hilo:
             self._hilo.join(timeout=2)
@@ -152,8 +150,8 @@ class MotorVoz:
     def preprocesar_audio(self, audio_raw):
         """
         Preprocesamiento según el modo detectado:
-        - loopback:   solo normalización (audio ya viene limpio del sistema)
-        - microfono:  reducción de ruido + filtro pasa-banda + normalización
+        - loopback:  solo normalización (audio ya viene limpio del sistema)
+        - microfono: reducción de ruido + filtro pasa-banda + normalización
         """
         try:
             audio_flatten = audio_raw.flatten()
@@ -191,7 +189,6 @@ class MotorVoz:
     def transcribir(self, audio_data, lang_code):
         """Transcribe audio a texto usando Google Speech API."""
         if self._cancelado:
-            logging.info("Transcripción omitida — fue cancelada")
             return None
 
         audio_raw = np.concatenate(audio_data, axis=0)
@@ -210,8 +207,6 @@ class MotorVoz:
         recognizer.pause_threshold = 0.8
         recognizer.phrase_threshold = 0.3
         recognizer.non_speaking_duration = 0.5
-
-        logging.info(f"Enviando audio a Google Speech — idioma: {lang_code}")
 
         try:
             texto = recognizer.recognize_google(audio_obj, language=lang_code)

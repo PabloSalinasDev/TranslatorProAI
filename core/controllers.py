@@ -1,6 +1,7 @@
 import threading
 import time
 import logging
+import numpy as np
 import re
 import flet as ft
 from deep_translator import GoogleTranslator
@@ -171,11 +172,11 @@ class AppController:
     def start_voice(self, _):
         """
         Inicia el proceso de captura de audio.
-        Detecta automáticamente el modo (loopback o micrófono) según
-        si hay audio del sistema sonando al momento de grabar.
+        Arranca micrófono y loopback en paralelo desde el inicio.
+        Al detener, evalúa automáticamente cuál tiene audio real y lo usa.
         Realiza una validación de conectividad antes de proceder. Si es exitosa:
         1. Limpia los campos de texto anteriores.
-        2. Activa el flujo de entrada en el MotorVoz.
+        2. Activa micrófono y loopback en paralelo en el MotorVoz.
         3. Bloquea los controles para evitar conflictos.
         4. Transforma el botón de 'Detener' en un controlador de grabación ('Stop rec').
         """
@@ -196,6 +197,43 @@ class AppController:
             self.page.update()
 
             def timer():
+                self.ui.texto_proceso.value = "Esperando audio..."
+                self.page.update()
+                # Espera hasta que haya audio real, máximo 5 segundos
+                tiene_audio = False
+                for _ in range(10):  # 10 × 0.5s = 5 segundos
+                    time.sleep(0.5)
+                    if not self.motor_voz.is_recording:
+                        return
+                    # Evaluar loopback por RMS
+                    if self.motor_voz._buffer:
+                        audio_lb = np.concatenate(self.motor_voz._buffer, axis=0).flatten()
+                        rms_lb = float(np.sqrt(np.mean(audio_lb**2)))
+                        if rms_lb > 0.014:
+                            tiene_audio = True
+
+                    # Evaluar micrófono
+                    if not tiene_audio:
+                        chunks = list(self.motor_voz.queue.queue)
+                        if chunks:
+                            audio = np.concatenate(chunks, axis=0).flatten()
+                            rms = float(np.sqrt(np.mean(audio**2)))
+                            if rms > 0.014:
+                                tiene_audio = True
+
+                    if tiene_audio:
+                        break
+
+                if not tiene_audio:
+                    self.motor_voz.cancelar()
+                    self.ui.texto_proceso.value = "No se detectó audio"
+                    self.ui.btn_grabar.disabled = False
+                    self.ui.btn_detener.disabled = True
+                    self.ui.btn_detener.text = "Stop"
+                    self.ui.pr.visible = False
+                    self.page.update()
+                    return
+                # Recién acá arranca el contador real de 59 segundos
                 s = 59
                 while self.motor_voz.is_recording and s > 0:
                     time.sleep(1)
@@ -203,6 +241,7 @@ class AppController:
                     if self.motor_voz.is_recording:
                         self.ui.texto_proceso.value = f"Grabando... {s}s"
                         self.page.update()
+
                 if s <= 0 and self.motor_voz.is_recording:
                     self.stop_voice(None)
 
@@ -215,12 +254,11 @@ class AppController:
     def stop_voice(self, _):
         """
         Finaliza la captura de audio y procesa la traducción.
-        Corta la grabación (loopback o micrófono según modo detectado) y lanza
-        un hilo secundario para realizar la transcripción y traducción
-        sin bloquear la interfaz.
+        Detiene micrófono y loopback, evalúa cuál tiene audio real
+        y lanza un hilo secundario para realizar la transcripción
+        y traducción sin bloquear la interfaz.
         """
         try:
-            logging.info("stop_voice llamado")
             audio_data = self.motor_voz.detener_grabacion()
             self.ui.btn_detener.disabled = True
             self.ui.pr.visible = True
@@ -245,7 +283,7 @@ class AppController:
                     self.ui.texto_proceso.value = "Completado"
                     self.ui.btn_hablar_txt.disabled = False
                 except Exception as e:
-                    self.ui.texto_proceso.value = "Error procesando"
+                    self.ui.texto_proceso.value = str(e)
                 finally:
                     self.ui.pr.visible = False
                     self.ui.btn_grabar.disabled = False
@@ -253,7 +291,12 @@ class AppController:
                     self.page.update()
 
             threading.Thread(target=_proc, daemon=True).start()
-        except: pass
+        except Exception as ex:
+            self.ui.texto_proceso.value = str(ex)
+            self.ui.pr.visible = False
+            self.ui.btn_grabar.disabled = False
+            self.ui.btn_detener.text = "Stop"
+            self.page.update()
 
     def cerrar_app(self, _=None):
         """Detiene todos los procesos de hardware y cierra la aplicación."""

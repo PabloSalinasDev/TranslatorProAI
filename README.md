@@ -1,5 +1,5 @@
 # TranslatorPro AI
-### Traductor de texto y voz con síntesis de audio · Python & Flet · v1.1.0
+### Traductor de texto y voz con síntesis de audio · Python & Flet · v1.2.0
 
 Aplicación de escritorio con interfaz gráfica frameless y tema oscuro para traducir texto
 escrito y voz en tiempo real. Integra reconocimiento de voz, síntesis TTS y traducción
@@ -34,7 +34,7 @@ automática vía Google, con cache LRU para optimizar el uso de la API.
 ## Características Principales
 
 - **Traducción de texto** — Detección automática del idioma de origen con caché LRU integrado que evita llamadas repetidas a la API.
-- **Traducción por voz** — Grabación desde micrófono o loopback del sistema (máx. 60 seg.) con detección automática del modo según el audio activo. Preprocesamiento de audio adaptativo: reducción de ruido y filtro pasa-banda (60–7000 Hz) en modo micrófono, normalización en modo loopback.
+- **Traducción por voz** — Grabación simultánea desde micrófono y loopback del sistema (máx. 60 seg.). Al detener, selecciona automáticamente el audio con mayor señal real. Preprocesamiento adaptativo: reducción de ruido y filtro pasa-banda en modo micrófono, normalización en modo loopback.
 - **Síntesis de voz (TTS)** — Reproduce la traducción con `gTTS` + `pygame`, con controles de pausar, reanudar y detener. Soporta textos largos mediante división inteligente por puntuación.
 - **Monitor de conectividad** — Hilo en segundo plano que verifica la conexión cada 5 segundos y actualiza el indicador WiFi en la barra de título.
 - **Interfaz frameless** — Ventana sin bordes (500×655), arrastrable, con modo oscuro y paleta naranja/gris.
@@ -129,7 +129,7 @@ python main.py
 - Arquitectura multihilo con `threading` para no bloquear la UI durante grabación, TTS, y monitoreo de red.
 - Máquina de estados para el reproductor de audio: `playing → paused → stopped`.
 - Cache LRU implementado manualmente con `OrderedDict` (sin librerías externas).
-- Detección automática de modo de captura de audio mediante análisis de RMS del loopback del sistema.
+- Grabación simultánea de micrófono y loopback en paralelo con selección automática del mejor audio por análisis de RMS al detener.
 - Preprocesamiento adaptativo de señal de audio: reducción de ruido espectral con `noisereduce` y filtro Butterworth pasa-banda con `scipy.signal` en modo micrófono.
 - División inteligente de texto largo con `re` y `textwrap` para no exceder límites de la API TTS.
 - Manejo de SSL con `certifi` para compatibilidad en ejecutables.
@@ -147,5 +147,4 @@ Nota: Al ser una herramienta de utilidad independiente y no estar firmada digita
 
 ---
 
-*Desarrollado por [Pablo Salinas](https://github.com/PabloSalinasDev)*
-PyBloSoft © 2026
+*Desarrollado por [Pablo Salinas](https://github.com/PabloSalinasDev)* - PyBloSoft © 2026

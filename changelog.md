@@ -4,6 +4,21 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 
 ---
 
+## [1.2.0] - 2026-04-24
+
+### Cambiado
+- `MotorVoz` ahora graba micrófono y loopback en paralelo desde el inicio
+- La decisión del modo (loopback vs micrófono) se toma al detener según el RMS real
+- Eliminado el sistema de switch dinámico durante la grabación
+- Timer inteligente evalúa ambos buffers para detectar audio real
+
+### Corregido
+- Se perdía la primera palabra del video al switchear de micrófono a loopback
+- El contador de 60 segundos arranca solo cuando hay audio real detectado
+- Grabación no se detenía correctamente al cambiar de pestaña
+
+---
+
 ## [1.1.0] - 2026-04-23
 
 ### Agregado
@@ -26,7 +41,7 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 ## [1.0.1] - 2026-04-22
 
 ### Corregido
-- Ajuste de parámetros en preprocesamiento de audio (prop_decrease, n_fft)
+- Manejo controlado cuando no hay salida de audio.
 - Se corrigió el error que forzaba minúsculas después de los puntos, permitiendo una capitalización correcta en párrafos largos.
 
 ---

@@ -23,8 +23,8 @@ MODO TEXTO:
 - Control de reproducción de voz con funciones de Pausa/Reanudar.
 
 MODO VOZ:
-- Detección automática del origen de audio: micrófono o sistema
-  (videos, YouTube, reproductores de audio).
+- Grabación simultánea desde micrófono y audio del sistema (loopback).
+- Selección automática del mejor audio al detener según señal real.
 - Reconocimiento de voz con reducción activa de ruido de fondo
   en modo micrófono.
 - Temporizador en tiempo real (límite de 60s por sesión).
@@ -59,6 +59,6 @@ Puede ejecutarla con total seguridad
 seleccionando 'Más información' -> 'Ejecutar de todas formas'.
 
 ==========================================================
-TranslatorPro AI - Versión 1.1.0
+TranslatorPro AI - Versión 1.2.0
 Desarrollado por PyBloSoft © 2026
 ==========================================================
