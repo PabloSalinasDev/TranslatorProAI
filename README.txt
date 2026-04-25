@@ -59,6 +59,6 @@ Puede ejecutarla con total seguridad
 seleccionando 'Más información' -> 'Ejecutar de todas formas'.
 
 ==========================================================
-TranslatorPro AI - Versión 1.2.0
+TranslatorPro AI - Versión 1.2.1
 Desarrollado por PyBloSoft © 2026
 ==========================================================

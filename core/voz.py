@@ -36,7 +36,8 @@ class MotorVoz:
     def callback_audio(self, indata, frames, time, status):
         """Callback para captura de micrófono en tiempo real."""
         if status:
-            self.queue.put(indata.copy())
+            logging.warning(f"Audio status: {status}")
+        self.queue.put(indata.copy())
 
     def iniciar_grabacion(self):
         """
@@ -133,18 +134,20 @@ class MotorVoz:
         logging.info("Grabación cancelada")
         self._cancelado = True
         self.is_recording = False
-        self._buffer_mic = []
 
-        if self._modo == "loopback" and self._hilo:
+        if self._hilo:
             self._hilo.join(timeout=2)
-        elif self._modo == "microfono" and self.stream:
+
+        if self.stream:
             try:
                 self.stream.stop()
                 self.stream.close()
             except Exception as e:
                 logging.warning(f"Error cerrando stream en cancelación: {e}")
+            self.stream = None
 
         self._buffer = []
+        self._buffer_mic = []
         self.recording = []
 
     def preprocesar_audio(self, audio_raw):

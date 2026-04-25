@@ -4,6 +4,14 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 
 ---
 
+## [1.2.1] - 2026-04-25
+
+### Corregido
+- Micrófono no capturaba audio por error en callback_audio al limpiar logging
+- cancelar() no cerraba el stream correctamente cuando _modo era None
+
+---
+
 ## [1.2.0] - 2026-04-24
 
 ### Cambiado

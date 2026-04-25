@@ -1,5 +1,5 @@
 # TranslatorPro AI
-### Traductor de texto y voz con síntesis de audio · Python & Flet · v1.2.0
+### Traductor de texto y voz con síntesis de audio · Python & Flet · v1.2.1
 
 Aplicación de escritorio con interfaz gráfica frameless y tema oscuro para traducir texto
 escrito y voz en tiempo real. Integra reconocimiento de voz, síntesis TTS y traducción
