@@ -6,7 +6,7 @@ escrito y voz en tiempo real. Integra reconocimiento de voz, síntesis TTS y tra
 automática vía Google, con cache LRU para optimizar el uso de la API.
 
 <p align="center">
-  <a href="https://github.com/PabloSalinasDev/TranslatorProAI/releases/download/v1.0.0/TranslatorProAI-Ver.1.0.0.exe">
+  <a href="https://github.com/PabloSalinasDev/TranslatorProAI/releases/download/v1.2.1/TranslatorProAI-Ver.1.2.1.exe">
     <img src="https://img.shields.io/badge/Descargar-Instalador_Windows-blue?style=for-the-badge&logo=windows" alt="Descargar Instalador">
   </a>
   &nbsp;&nbsp;&nbsp;&nbsp;
